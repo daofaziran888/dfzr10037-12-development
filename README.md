@@ -81,5 +81,19 @@ npm run dev
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
 
+## 分来源推荐（共享/受限依据）
+
+推荐引擎把探查邻边与实体融合的候选引证按「归属」分开登记（`app/services/reco_source.py`），
+候选分值只在入口有权使用的引证范围内计算：公共入口仅用共享引证，融合入口可用共享+受限引证。
+重复提交同一条引证只计一次；撤销公开边后按重算记录（依据指纹）复算候选；子图探查的待办
+接到分来源推荐数据后同步准备扩边，提交的种子只携带该入口有权限的关系，越权使用证据直接拒绝。
+
+- `GET/POST /api/reco_source/evidence`、`POST /api/reco_source/evidence/{编号}/revoke`：引证登记/撤销（撤销后自动重算并同步待办）。
+- `GET /api/reco_source/board?entry=公共入口|融合入口`：分来源推荐数据（名次、分值、参与引证、证据构成）。
+- `POST /api/reco_source/recompute`、`GET /api/reco_source/recomputes`：按入口重算候选，重算记录可复算。
+- `POST /api/reco_source/expand`、`GET /api/reco_source/expansions`：提交种子扩边与扩边待办对比。
+
+验收脚本（先起后端）：`backend/.venv/bin/python backend/tests/verify_reco_source.py`
+
 领域：数据工程
 子方向：数据分析与数据应用

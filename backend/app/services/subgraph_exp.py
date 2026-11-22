@@ -72,7 +72,16 @@ class SubgraphExpService(BaseModuleService):
         rows.append(reco_entry)
         return f"探查种子推送推荐引擎 {reco_entry['规则编号']}"
 
+    def expansion_todos(self) -> list[dict[str, Any]]:
+        """扩边待办：接到分来源推荐数据后由推荐域同步维护，只含该入口有权限的关系。"""
+        return list(store.rows("subgraph_expansion"))
+
     def domain_snapshot(self) -> dict[str, Any]:
         base = super().domain_snapshot()
         base["cross_module_consumers"] = ["graph_search", "reco_engine"]
+        todos = store.rows("subgraph_expansion")
+        base["expansion_todos"] = {
+            "total": len(todos),
+            "待扩边": sum(1 for row in todos if row.get("状态") == "待扩边"),
+        }
         return base
